@@ -1,0 +1,79 @@
+<?php
+
+function workbench_access_crud_by_state_workbench_access_user_alter(&$access, &$account) {
+  debug($access,'access');
+  foreach ($access as $data) {
+    $ndata = $data;
+    $ndata['update'] = array('none');
+    $naccess[] = $ndata;
+  }
+  $access = $naccess;
+}
+
+
+/**
+ * Implements hook_node_access().
+ *
+ * Enforces our access rules when users try to edit/delete a node.
+ */
+function workbench_access_crud_by_state_node_access($node, $op, $account) {
+  if ($op != 'update') {
+    return NODE_ACCESS_IGNORE;
+  }
+
+  // If disabled for this content type, do nothing.
+  if (!is_object($node)) {
+    $type = $node;
+  }
+  else {
+    $type = $node->type;
+  }
+  if (!variable_get('workbench_access_node_type_' . $type, 1)) {
+    return NODE_ACCESS_IGNORE;
+  }
+
+  // Now check the user account.
+  if (!isset($account->workbench_access)) {
+    $account = user_load($account->uid);
+  }
+//  debug($account->workbench_access,'account->workbench_access');
+
+  // Load the current scheme.
+  workbench_access_load_include(variable_get('workbench_access'));
+/*
+  // Get the access rules for this node.
+  $result = FALSE; // Always default to FALSE.
+  if (!empty($node->workbench_access) && !empty($account->workbench_access)) {
+    $result = workbench_access_check($op, $type, array_filter($node->workbench_access), $account->workbench_access);
+  }
+  debug($result,'result');
+*/
+//  debug($node->workbench_access,'node->workbench_access');
+  $author_edit_states = array('bereit_zur_pr_fung','entwurf');
+
+  if (!in_array($node->workbench_moderation['current']->state, $author_edit_states)) {
+    debug('in array DENY');
+    return NODE_ACCESS_DENY;
+  }
+}
+
+/*
+* Einige sections duerfen in einigen states nicht editieren
+* also:
+* zwei variablen (spaeter tables)
+* 
+* author_edit_states: alle states in denen editiert werden darf
+*
+* sections_limited: 
+* alle sections die der beschraenkung der gewissen edit states unterliegen
+*
+*
+*
+*/
+
+// finde raus ob account access id in tree 
+function workbench_access_crud_by_state_get_sections_limited() {
+
+}
+
+

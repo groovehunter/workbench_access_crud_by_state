@@ -1,0 +1,7 @@
+name = Workbench Access CRUD by state
+description = Workbench Access CRUD operations dependent on state
+package = Workbench
+core = 7.x
+configure = admin/config/workbench/access
+
+
