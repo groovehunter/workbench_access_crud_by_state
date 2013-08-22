@@ -1,20 +1,17 @@
 <?php
 
-function workbench_access_crud_by_state_workbench_access_user_alter(&$access, &$account) {
-  debug($access,'access');
-  foreach ($access as $data) {
-    $ndata = $data;
-    $ndata['update'] = array('none');
-    $naccess[] = $ndata;
+/*
+function workbench_access_crud_by_state_workbench_access_user_alter($access, $account) {
+  foreach(array_keys($access) as $key) {
+    $access[$key]['update'] = array('none');
   }
-  $access = $naccess;
 }
+*/
+
 
 
 /**
  * Implements hook_node_access().
- *
- * Enforces our access rules when users try to edit/delete a node.
  */
 function workbench_access_crud_by_state_node_access($node, $op, $account) {
   if ($op != 'update') {
@@ -36,28 +33,33 @@ function workbench_access_crud_by_state_node_access($node, $op, $account) {
   if (!isset($account->workbench_access)) {
     $account = user_load($account->uid);
   }
-//  debug($account->workbench_access,'account->workbench_access');
 
   // Load the current scheme.
-  workbench_access_load_include(variable_get('workbench_access'));
-/*
-  // Get the access rules for this node.
-  $result = FALSE; // Always default to FALSE.
-  if (!empty($node->workbench_access) && !empty($account->workbench_access)) {
-    $result = workbench_access_check($op, $type, array_filter($node->workbench_access), $account->workbench_access);
-  }
-  debug($result,'result');
-*/
-//  debug($node->workbench_access,'node->workbench_access');
-  $author_edit_states = array('bereit_zur_pr_fung','entwurf');
+//  workbench_access_load_include(variable_get('workbench_access'));
 
-  if (!in_array($node->workbench_moderation['current']->state, $author_edit_states)) {
-    debug('in array DENY');
-    return NODE_ACCESS_DENY;
+  // check if author == current user
+  // -> not allowed to update 
+  if ($account->name == $node->name) {
+    //$author_edit_states = array('bereit_zur_pr_fung','entwurf');
+    $author_edit_states = array('entwurf');
+    if (!in_array($node->workbench_moderation['current']->state, $author_edit_states)) {
+      //debug('in array DENY');
+      return NODE_ACCESS_DENY;
+    }
+  } else {
+    //debug('update ok, not author!');
   }
 }
 
 /*
+Diverse regeln koennen vom admin eingestellt werden
+
+* Metaregeln dh. regeln die etliche granulare regeln auf einmal setzen
+* presets, die fuer viele use cases sinn machen 
+* Autoren duerfen nur in states x-y editieren, meist nur im entwurf
+
+Diese regeln abgreifen aus dem hook node_access und dementsprechend agieren
+
 * Einige sections duerfen in einigen states nicht editieren
 * also:
 * zwei variablen (spaeter tables)
@@ -66,14 +68,7 @@ function workbench_access_crud_by_state_node_access($node, $op, $account) {
 *
 * sections_limited: 
 * alle sections die der beschraenkung der gewissen edit states unterliegen
-*
-*
-*
 */
 
-// finde raus ob account access id in tree 
-function workbench_access_crud_by_state_get_sections_limited() {
-
-}
 
 
