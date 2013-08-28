@@ -1,14 +1,5 @@
 <?php
 
-/*
-function workbench_access_crud_by_state_workbench_access_user_alter($access, $account) {
-  foreach(array_keys($access) as $key) {
-    $access[$key]['update'] = array('none');
-  }
-}
-*/
-
-
 
 /**
  * Implements hook_node_access().
@@ -71,4 +62,24 @@ Diese regeln abgreifen aus dem hook node_access und dementsprechend agieren
 */
 
 
+/*
+// suggested in https://drupal.org/node/2019473 but not fired?!
+function workbench_access_crud_by_state_workbench_access_node_element_alter(&$element, &$form_state, $active) {
+sdpm($element);
+}
 
+// alter form so only one option left
+*/
+function workbench_access_crud_by_state_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id != 'hardware_antrag_node_form') { 
+    return; 
+  }
+  //sdpm($form);
+  $option_arr = $form['field_tu'][LANGUAGE_NONE]['#options'];
+  // remove 'none'-option
+  array_shift($option_arr);
+
+  // look for field for workbench_access and replace options
+  $wb_access_field = $form['workbench_access_fields']['#value'][0];
+  $form[$wb_access_field][LANGUAGE_NONE]['#options'] = $option_arr;
+}
